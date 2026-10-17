@@ -265,7 +265,9 @@ Fixed copy (spoken; numbers as words):
 
 ---
 
-### Task 7: TTS generation script
+### Task 7 (DEFERRED — not in MVP, no Yandex key yet): TTS generation script
+
+MVP speaks only via `speechSynthesis`; Task 8 ships with `public/audio/manifest.json` = `{}`. Implement this task later when the key exists; nothing else changes.
 
 **Files:**
 - Create: `scripts/tts.ts`, `public/audio/manifest.json`, `public/audio/*.mp3`, `.env.example` (`YANDEX_API_KEY=`)
@@ -285,7 +287,7 @@ Fixed copy (spoken; numbers as words):
 ### Task 8: Player engine, audio, wake lock
 
 **Files:**
-- Create: `src/player/engine.ts`, `src/player/audio.ts`, `src/player/wakeLock.ts`
+- Create: `src/player/engine.ts`, `src/player/audio.ts`, `src/player/wakeLock.ts`, `public/audio/manifest.json` (`{}` — Task 7 deferred, so every phrase goes to `speechSynthesis` with `lang = 'ru-RU'`)
 - Test: `tests/player/engine.test.ts`, `tests/player/audio.test.ts`, `tests/player/wakeLock.test.ts`
 
 **Interfaces:**
