@@ -15,6 +15,8 @@
 - Single user, no accounts, no backend; persistent state only in `localStorage`.
 - Session length: total program duration (holds + transitions) within **600–900 s**.
 - Hold times in DB: **20–45 s**; poses used only in the cooldown phase may go up to **120 s**.
+- Head-below-heart poses never directly follow each other (sides of one bilateral pose count as consecutive); an upright pose sits between them.
+- Cooldown-only poses: effective hold after progression **≤ 120 s**.
 - Hypertension filter is hard-coded, not configurable: excluded contraindications `inversion`, `breath-retention`, `intense-backbend`, `static-strength`; `head-below-heart` allowed only with effective hold **≤ 20 s** after progression.
 - Transitions between poses: **8 s** default, **15 s** when rising to standing from floor, **5 s** side switch, **10 s** before the first pose.
 - UI and voice in Russian; Sanskrit shown on screen only, never spoken.
@@ -78,7 +80,9 @@ export type BodyArea = 'neck' | 'shoulders' | 'upper-back' | 'lower-back' | 'spi
 export type Contraindication = 'inversion' | 'head-below-heart' | 'breath-retention' | 'intense-backbend' | 'static-strength';
 export interface Pose {
   id: string; nameRu: string; sanskrit?: string; description: string;
-  cues: string[];            // 1–2 short spoken technique cues
+  entryCue: string;          // spoken during the transition: how to get into the pose
+  cues: string[];            // 1–2 short spoken refinements, spoken at hold start (never exit wording)
+  exitCue?: string;          // spoken at hold end; required for head-below-heart and supine/prone poses
   holdSec: number; bilateral: boolean; position: Position; phases: Phase[];
   areas: BodyArea[]; difficulty: 1 | 2 | 3; contraindications: Contraindication[];
   yogaApiKey?: string; imagePrompt: string;
@@ -141,18 +145,22 @@ Pose set (ids fixed; content — Russian name, description, cues, holds, tags �
 | main — floor | `cat-cow`, `childs-pose`, `thread-the-needle`* (head-below-heart), `low-lunge`*, `sphinx`, `butterfly`, `bent-knee-seated-fold`, `seated-twist`* |
 | cooldown (supine) | `knees-to-chest`, `supine-twist`*, `supine-figure-four`*, `strap-hamstring-stretch`*, `reclined-bound-angle`, `legs-up-the-wall`, `corpse` |
 
-\* bilateral. Set `yogaApiKey` only where a matching key exists in `ICON_KEYS`.
+\* bilateral (plus `wrist-stretch`, one arm at a time). Set `yogaApiKey` only where a matching key exists in `ICON_KEYS`.
 
 - [ ] **Step 1: Write failing validation tests** in `tests/poses/data.test.ts`:
 ```ts
 test('ids unique', ...);                         // new Set(ids).size === POSES.length
 test('every pose passes hypertension filter', () => POSES.forEach(p => expect(isAllowed(p)).toBe(true)));
 test('holds within bounds', ...);                // 20–45, or ≤120 if phases equals ['cooldown']
-test('1–2 cues, non-empty description and imagePrompt', ...);
+test('1–2 cues, non-empty entryCue, description and imagePrompt', ...);
+test('exitCue present for head-below-heart, supine and prone poses', ...);
+test('cues contain no exit wording', ...);         // not /поднимайся|возвращайся|выходи/i
+test('exact id set and bilateral set from the table', ...);
+test('corpse hold 90–120', ...);
 test('yogaApiKey refers to vendored icon', ...); // ICON_KEYS.includes(key)
 test('each phase has enough poses', ...);        // warmup ≥ 4, main ≥ 8, cooldown ≥ 3
 test('corpse exists and is cooldown-only', ...);
-test('no spoken text contains Latin letters', ...); // nameRu and cues match /^[^A-Za-z]*$/
+test('no spoken text contains Latin letters or digits', ...); // nameRu, entryCue, cues, exitCue match /^[^A-Za-z0-9]*$/, non-empty
 ```
 - [ ] **Step 2:** Run → FAIL.
 - [ ] **Step 3:** Write `POSES`.
@@ -218,14 +226,17 @@ Algorithm (not determined by the tests):
 1. `pool = poses.filter(isAllowed)`; `rng = mulberry32(dayIndex < STABLE_DAYS ? 1 : hashString(date))`.
 2. Warmup: 3 random poses from `warmup`. Cooldown: 1 random non-`corpse` cooldown pose, then `corpse` last.
 3. Main: shuffle `main` pool; add poses while total ≤ 900 s; then sort main by position order `standing, chair, seated, kneeling, prone, supine`.
-4. Hold = `capHold(pose, scaleHold(pose.holdSec, level))`. Bilateral → two steps `right` then `left`, the left one with `transitionSec = 5`.
-5. Transition: first step 10; rising to `standing` from any of `seated|kneeling|prone|supine` 15; otherwise 8.
+4. Hold = `capHold(pose, scaleHold(pose.holdSec, level))`, then `min(…, 120)` for cooldown-only poses. Bilateral → two steps `right` then `left`, the left one with `transitionSec = 5`.
+5. After sorting main, if two `head-below-heart` poses are adjacent, move a non-head-below-heart main pose between them (prefer same position; if none fits, drop the later head-down pose).
+6. Transition: first step 10; rising to `standing` from any of `seated|kneeling|prone|supine` 15; otherwise 8.
 
 - [ ] **Step 1: Write failing tests** (iterate over 60 consecutive dates × levels `[0.8, 1, 1.5]` × dayIndex `[0, 30]` where relevant):
   - total within 600–900 and equals sum of holds + transitions;
   - last step is `corpse`; first 3 poses are warmup;
   - no step has a disallowed pose, using `poses` with an injected `inversion` pose → never appears;
   - every `head-below-heart` step has `holdSec ≤ 20` at level 1.5;
+  - no two consecutive steps of different poses are both `head-below-heart`, and no bilateral head-below-heart pose sits next to another head-down pose;
+  - cooldown-only steps have `holdSec ≤ 120` at level 1.5;
   - bilateral poses appear as adjacent `right`,`left` with equal holds;
   - same opts → deeply equal program; dayIndex < 21 → identical steps for two different dates; dayIndex ≥ 21 → at least two different programs among 7 dates;
   - first `transitionSec` = 10; floor→standing transition = 15.
@@ -253,11 +264,12 @@ export function allPhrases(poses: Pose[]): string[];                // every tex
 ```
 
 Fixed copy (spoken; numbers as words):
-- transition start: first step `Начинаем. Первая поза: ${nameRu}`, otherwise `Следующая поза: ${nameRu}`; side switch `Смена стороны. Левая сторона`; right side adds `Правая сторона` after the name.
+- transition start: first step `Начинаем. Первая поза: ${nameRu}`, otherwise `Следующая поза: ${nameRu}`, then `pose.entryCue`; side switch `Смена стороны. Левая сторона`; right side adds `Правая сторона` after the name.
 - hold start: each of `pose.cues` in order.
+- hold end: `pose.exitCue` if present (on the last side only for bilateral poses).
 - hold midpoint: `Дыши спокойно`.
 - hold end − 10 s: `Ещё десять секунд` (only if `holdSec ≥ 30`).
-- after last hold: `Практика окончена. Отличная работа` then `end`.
+- after last hold: `Практика окончена. Полежи на боку, затем медленно сядь` then `end`.
 
 - [ ] **Step 1: Write failing tests:** events sorted; each step has `transition` at its start and `hold` at start + transitionSec; `Дыши спокойно` at hold midpoint; no `Ещё десять секунд` for a 20 s hold; `end` at `program.totalSec`; every `say.text` of timelines for 30 generated programs ∈ `allPhrases(POSES)`.
 - [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS.
