@@ -374,7 +374,6 @@ export const POSES: Pose[] = [
     areas: ['spine', 'lower-back', 'hips'],
     difficulty: 1,
     contraindications: [],
-    yogaApiKey: 'half-lord-of-the-fishes',
     imagePrompt:
       'Minimalist silhouette of a clothed person sitting on a folded blanket with both knees bent and feet on the floor, hugging one knee and gently twisting toward it, the other hand on the floor behind, plain light background.',
   },
