@@ -266,7 +266,7 @@ export function allPhrases(poses: Pose[]): string[];                // every tex
 Fixed copy (spoken; numbers as words):
 - transition start: first step `Начинаем. Первая поза: ${nameRu}`, otherwise `Следующая поза: ${nameRu}`, then `pose.entryCue`; side switch `Смена стороны. Левая сторона`; right side adds `Правая сторона` after the name.
 - hold start: each of `pose.cues` in order.
-- hold end: `pose.exitCue` if present (on the last side only for bilateral poses).
+- hold end: `pose.exitCue` if present — after **each** side for bilateral poses; the side switch then says `Смена стороны. Левая сторона` followed by `pose.entryCue` again.
 - hold midpoint: `Дыши спокойно`.
 - hold end − 10 s: `Ещё десять секунд` (only if `holdSec ≥ 30`).
 - after last hold: `Практика окончена. Полежи на боку, затем медленно сядь` then `end`.
