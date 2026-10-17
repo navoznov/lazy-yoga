@@ -7,6 +7,7 @@ function pose(overrides: Partial<Pose> = {}): Pose {
     id: 'test-pose',
     nameRu: 'Тестовая поза',
     description: 'Описание',
+    entryCue: 'Сядь ровно',
     cues: ['Дыши спокойно'],
     holdSec: 30,
     bilateral: false,

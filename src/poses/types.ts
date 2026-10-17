@@ -8,7 +8,9 @@ export interface Pose {
   nameRu: string
   sanskrit?: string
   description: string
-  cues: string[] // 1–2 short spoken technique cues
+  entryCue: string // spoken during the transition: how to get into the pose
+  cues: string[] // 1–2 short spoken refinements, spoken at hold start (never exit wording)
+  exitCue?: string // spoken at hold end; required for head-below-heart and supine/prone poses
   holdSec: number
   bilateral: boolean
   position: Position
