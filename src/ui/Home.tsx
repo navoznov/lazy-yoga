@@ -27,7 +27,7 @@ export function Home(props: { program: Program; doneToday: boolean; onStart: () 
       <ol class="program">
         {rows(program.steps).map(({ step, sides }, i) => (
           <li key={i}>
-            {step.pose.yogaApiKey ? <PoseIcon iconKey={step.pose.yogaApiKey} /> : <span class="icon" />}
+            {step.pose.icon ? <PoseIcon poseId={step.pose.id} /> : <span class="icon" />}
             <span class="pose-name">
               {step.pose.nameRu}
               {step.pose.sanskrit && <small>{step.pose.sanskrit}</small>}

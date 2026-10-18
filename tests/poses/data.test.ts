@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest'
 import { POSES } from '../../src/poses/data'
-import { ICON_KEYS } from '../../src/poses/icons'
 import { isAllowed } from '../../src/poses/safety'
 import type { Phase } from '../../src/poses/types'
 
@@ -63,8 +62,17 @@ test('corpse hold 90–120', () => {
   expect(corpse.holdSec).toBeLessThanOrEqual(120)
 })
 
-test('yogaApiKey refers to vendored icon', () => {
-  for (const p of POSES) if (p.yogaApiKey !== undefined) expect(ICON_KEYS, p.id).toContain(p.yogaApiKey)
+const iconFiles = Object.keys(import.meta.glob('../../public/icons/*.svg')).map(path =>
+  path.replace('../../public/icons/', '').replace(/\.svg$/, ''),
+)
+
+test('every icon:true pose has its svg file', () => {
+  for (const p of POSES) if (p.icon) expect(iconFiles, p.id).toContain(p.id)
+})
+
+test('every svg file belongs to an icon:true pose', () => {
+  const iconIds = POSES.filter(p => p.icon).map(p => p.id)
+  for (const file of iconFiles) expect(iconIds, file).toContain(file)
 })
 
 test('each phase has enough poses', () => {

@@ -18,6 +18,6 @@ export interface Pose {
   areas: BodyArea[]
   difficulty: 1 | 2 | 3
   contraindications: Contraindication[]
-  yogaApiKey?: string
+  icon?: boolean // true = public/icons/<id>.svg exists
   imagePrompt: string
 }

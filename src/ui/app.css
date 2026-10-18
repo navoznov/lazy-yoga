@@ -5,7 +5,6 @@
   --accent: #1f5f3a;
   --accent-fg: #ffffff;
   --line: #d0d0d0;
-  --icon-filter: none;
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 20px;
@@ -20,7 +19,6 @@
     --accent: #7fd6a1;
     --accent-fg: #000000;
     --line: #3a3a3a;
-    --icon-filter: invert(1);
   }
 }
 
@@ -110,7 +108,6 @@ button {
   width: 2.5rem;
   height: 2.5rem;
   flex: none;
-  filter: var(--icon-filter);
 }
 
 .pose-name {
@@ -133,10 +130,6 @@ small,
 footer {
   margin-top: 1.5rem;
   text-align: center;
-}
-
-.credits li {
-  margin-bottom: 0.5rem;
 }
 
 .session {
@@ -176,7 +169,6 @@ footer {
 .pose-icon {
   width: min(60vw, 16rem);
   height: auto;
-  filter: var(--icon-filter);
   pointer-events: none;
 }
 

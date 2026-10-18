@@ -198,7 +198,6 @@ export const POSES: Pose[] = [
     areas: ['hips'],
     difficulty: 2,
     contraindications: [],
-    yogaApiKey: 'warrior-two',
     imagePrompt:
       'Minimalist silhouette of a clothed person in a shallow warrior two stance, front knee slightly bent, hands resting on the hips, plain light background.',
   },
@@ -239,6 +238,7 @@ export const POSES: Pose[] = [
     areas: ['spine', 'lower-back', 'upper-back'],
     difficulty: 1,
     contraindications: ['head-below-heart'],
+    icon: true,
     imagePrompt:
       'Minimalist silhouette of a clothed person on hands and knees with a gently rounded back, side view, plain light background.',
   },
@@ -258,7 +258,7 @@ export const POSES: Pose[] = [
     areas: ['lower-back', 'hips'],
     difficulty: 1,
     contraindications: ['head-below-heart'],
-    yogaApiKey: 'childs-pose',
+    icon: true,
     imagePrompt:
       'Minimalist silhouette of a clothed person kneeling with knees apart, hips toward heels, forehead resting on a pillow, arms forward, plain light background.',
   },
@@ -277,6 +277,7 @@ export const POSES: Pose[] = [
     areas: ['upper-back', 'shoulders'],
     difficulty: 2,
     contraindications: ['head-below-heart'],
+    icon: true,
     imagePrompt:
       'Minimalist silhouette of a clothed person on hands and knees, one arm threaded under the body with shoulder and temple resting on a pillow, plain light background.',
   },
@@ -296,6 +297,7 @@ export const POSES: Pose[] = [
     areas: ['hips'],
     difficulty: 2,
     contraindications: [],
+    icon: true,
     imagePrompt:
       'Minimalist silhouette of a clothed person in a low kneeling lunge, back knee on a cushion, hands resting on the front thigh, upright torso, plain light background.',
   },
@@ -315,7 +317,7 @@ export const POSES: Pose[] = [
     areas: ['spine', 'lower-back'],
     difficulty: 1,
     contraindications: [],
-    yogaApiKey: 'sphinx',
+    icon: true,
     imagePrompt:
       'Minimalist silhouette of a clothed person lying on the stomach, propped up on forearms with elbows under shoulders, gentle chest lift, plain light background.',
   },
@@ -335,7 +337,6 @@ export const POSES: Pose[] = [
     areas: ['hips'],
     difficulty: 1,
     contraindications: [],
-    yogaApiKey: 'butterfly',
     imagePrompt:
       'Minimalist silhouette of a clothed person sitting upright on a folded blanket, soles of the feet together, knees falling outward, plain light background.',
   },
@@ -509,7 +510,6 @@ export const POSES: Pose[] = [
     areas: ['spine'],
     difficulty: 1,
     contraindications: [],
-    yogaApiKey: 'corpse',
     imagePrompt:
       'Minimalist silhouette of a clothed person lying flat on the back with a pillow under the head, arms relaxed by the sides, eyes closed, plain light background.',
   },

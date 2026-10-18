@@ -135,8 +135,8 @@ export function Session({ run, onDone, onQuit }: { run: SessionRun; onDone: () =
       </p>
       <h1>{pose.nameRu}</h1>
       {pose.sanskrit && <p class="sanskrit">{pose.sanskrit}</p>}
-      {pose.yogaApiKey ? (
-        <PoseIcon iconKey={pose.yogaApiKey} class="pose-icon" />
+      {pose.icon ? (
+        <PoseIcon poseId={pose.id} class="pose-icon" />
       ) : (
         <p class="description">{pose.description}</p>
       )}

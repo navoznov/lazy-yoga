@@ -1,19 +1,12 @@
-import { ICON_CREDITS } from '../poses/icons'
+import { ICON_SOURCE } from '../poses/icons'
 
 export function Credits({ onBack }: { onBack: () => void }) {
   return (
     <main class="screen">
       <h1>Авторы иконок</h1>
       <p>
-        Иконки поз взяты из <a href="https://github.com/rebeccaestes/yoga_api">yoga_api</a>, источник — Noun Project.
+        Иконки поз взяты из коллекции <a href={ICON_SOURCE.url}>{ICON_SOURCE.name}</a>, лицензия {ICON_SOURCE.license}.
       </p>
-      <ul class="credits">
-        {ICON_CREDITS.map(c => (
-          <li key={c.author}>
-            <a href={c.source}>{c.author}</a> — {c.license}
-          </li>
-        ))}
-      </ul>
       <button class="link" onClick={onBack}>
         Назад
       </button>

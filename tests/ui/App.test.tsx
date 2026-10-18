@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/preact'
 import { afterEach, beforeEach, expect, test } from 'vitest'
-import { ICON_CREDITS } from '../../src/poses/icons'
+import { ICON_SOURCE } from '../../src/poses/icons'
 import { DEFAULT_STATE, loadState, saveState, todayLocal } from '../../src/storage'
 import { App } from '../../src/ui/App'
 
@@ -96,8 +96,10 @@ test('rating twice on the same day changes the level only once', async () => {
   expect(state.history).toEqual([{ date: todayLocal(), rating: 'hard' }])
 })
 
-test('Credits page lists ICON_CREDITS authors', () => {
+test('Credits page shows ICON_SOURCE', () => {
   acceptDisclaimer()
   fireEvent.click(screen.getByRole('button', { name: 'Авторы иконок' }))
-  for (const { author } of ICON_CREDITS) expect(screen.getByText(author, { exact: false })).toBeTruthy()
+  const link = screen.getByRole('link', { name: ICON_SOURCE.name })
+  expect(link.getAttribute('href')).toBe(ICON_SOURCE.url)
+  expect(screen.getByText(ICON_SOURCE.license, { exact: false })).toBeTruthy()
 })
