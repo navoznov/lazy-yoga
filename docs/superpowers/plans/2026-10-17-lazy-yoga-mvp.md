@@ -353,7 +353,7 @@ Flow: first launch → `Disclaimer` (button «Понятно», sets `disclaimer
 
 - [ ] **Step 1:** Configure; `npm run build && npx vite preview`; verify in Chrome DevTools → Application: manifest valid, service worker active, works offline after first load.
 - [ ] **Step 2:** Commit `feat: make app installable and deploy to GitHub Pages`.
-- [ ] **Step 3:** Push branch, open PR to `main`. After merge, enable Pages (source: GitHub Actions) in repo settings; verify the site opens on iPhone, add to Home Screen, run one session offline.
+- [ ] **Step 3:** Push branch, open PR to `main`. After merge, enable Pages (source: GitHub Actions) in repo settings; verify the site opens in Chrome on Android, install it (Add to Home screen), run one session offline.
 
 ---
 
