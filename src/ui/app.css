@@ -125,7 +125,7 @@ small,
   font-style: italic;
 }
 
-.hold {
+.program .hold {
   color: var(--muted);
   white-space: nowrap;
 }
@@ -148,6 +148,7 @@ footer {
   justify-content: center;
   padding: 1.5rem 1rem;
   text-align: center;
+  overflow-wrap: break-word;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
