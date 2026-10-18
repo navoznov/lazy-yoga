@@ -120,3 +120,63 @@ test('browserSpeak resolves by timeout when onend never fires', async () => {
   delete g.speechSynthesis
   vi.useRealTimers()
 })
+
+function fakeSynth(initialVoices: { lang: string; name: string }[] = []) {
+  let voices = initialVoices
+  const listeners: (() => void)[] = []
+  const spoken: { text: string; lang: string; voice: { name: string } | null; onend: (() => void) | null }[] = []
+  return {
+    spoken,
+    loadVoices(next: { lang: string; name: string }[]) {
+      voices = next
+      listeners.forEach(l => l())
+    },
+    install() {
+      const g = globalThis as Record<string, unknown>
+      g.SpeechSynthesisUtterance = class { lang = ''; voice = null; onend = null; onerror = null; text: string; constructor(text: string) { this.text = text } }
+      g.speechSynthesis = {
+        getVoices: () => voices,
+        speak: (u: (typeof spoken)[number]) => spoken.push(u),
+        addEventListener: (type: string, l: () => void) => type === 'voiceschanged' && listeners.push(l),
+      }
+      return () => {
+        delete g.SpeechSynthesisUtterance
+        delete g.speechSynthesis
+      }
+    },
+  }
+}
+
+const VOICES = [{ lang: 'en-US', name: 'Samantha' }, { lang: 'ru-RU', name: 'Milena' }]
+
+test('browserSpeak waits for the async voice list and picks a russian voice (desktop Chrome)', async () => {
+  vi.useFakeTimers()
+  const synth = fakeSynth()
+  const uninstall = synth.install()
+  const done = browserSpeak('Дыши спокойно')
+  synth.loadVoices(VOICES)
+  await vi.advanceTimersByTimeAsync(0)
+  expect(synth.spoken).toHaveLength(1)
+  expect(synth.spoken[0].voice?.name).toBe('Milena')
+  expect(synth.spoken[0].lang).toBe('ru-RU')
+  synth.spoken[0].onend!()
+  await done
+  // voices are cached: the next phrase is spoken right away with the same voice
+  browserSpeak('Ещё')
+  expect(synth.spoken[1].voice?.name).toBe('Milena')
+  uninstall()
+  vi.useRealTimers()
+})
+
+test('browserSpeak still speaks with lang ru-RU when no voice list ever arrives', async () => {
+  vi.useFakeTimers()
+  const synth = fakeSynth()
+  const uninstall = synth.install()
+  browserSpeak('Дыши спокойно')
+  await vi.advanceTimersByTimeAsync(5_000)
+  expect(synth.spoken).toHaveLength(1)
+  expect(synth.spoken[0].voice).toBeNull()
+  expect(synth.spoken[0].lang).toBe('ru-RU')
+  uninstall()
+  vi.useRealTimers()
+})
