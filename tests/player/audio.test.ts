@@ -84,3 +84,16 @@ test('stop drops queued phrases', async () => {
 test('browserSpeak does not throw without speechSynthesis', async () => {
   await expect(browserSpeak('Привет')).resolves.toBeUndefined()
 })
+
+test('idle voice reaches play/speak synchronously (iOS unlocks audio only inside a user gesture)', async () => {
+  const { log, deps } = fakes()
+  const voice = createVoice(deps)
+  const first = voice.say('Дыши спокойно')
+  const second = voice.say('Привет')
+  expect(log).toEqual(['speak Дыши спокойно'])
+  await Promise.all([first, second])
+  expect(log).toEqual(['speak Дыши спокойно', 'play /audio/abc.mp3'])
+  const third = voice.say('Ещё')
+  expect(log).toEqual(['speak Дыши спокойно', 'play /audio/abc.mp3', 'speak Ещё'])
+  await third
+})

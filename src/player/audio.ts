@@ -14,10 +14,17 @@ export function createVoice(deps: { manifest: Record<string,string>; baseUrl: st
     }
   }
 
+  let pending = 0
+
   return {
+    // An idle queue starts right away, so a call inside a user gesture reaches play/speak synchronously (iOS unlock).
     say(text) {
       const gen = generation
-      queue = queue.then(() => (gen === generation ? utter(text) : undefined))
+      const run = () => (gen === generation ? utter(text) : undefined)
+      pending++
+      queue = (pending === 1 ? Promise.resolve(run()) : queue.then(run)).then(() => {
+        pending--
+      })
       return queue
     },
     // Drops queued phrases; the one currently playing finishes on its own.

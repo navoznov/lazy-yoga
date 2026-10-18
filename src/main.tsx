@@ -1,3 +1,5 @@
 import { render } from 'preact'
+import { App } from './ui/App'
+import './ui/app.css'
 
-render(<h1>Lazy Yoga</h1>, document.getElementById('app')!)
+render(<App />, document.getElementById('app')!)
