@@ -354,3 +354,29 @@ Flow: first launch → `Disclaimer` (button «Понятно», sets `disclaimer
 - [ ] **Step 1:** Configure; `npm run build && npx vite preview`; verify in Chrome DevTools → Application: manifest valid, service worker active, works offline after first load.
 - [ ] **Step 2:** Commit `feat: make app installable and deploy to GitHub Pages`.
 - [ ] **Step 3:** Push branch, open PR to `main`. After merge, enable Pages (source: GitHub Actions) in repo settings; verify the site opens on iPhone, add to Home Screen, run one session offline.
+
+---
+
+### Task 6b: Speech-aware timing (added after Task 6)
+
+Problem: an 8 s transition (5 s side switch) carries the previous `exitCue` + name + side + `entryCue` ≈ 6–10 s of speech, so the queue lags and in-hold cues drift late.
+
+**Files:**
+- Create: `src/player/phrases.ts`; Modify: `src/player/timeline.ts`, `src/program/generate.ts`
+- Test: `tests/player/phrases.test.ts`, extend `tests/player/timeline.test.ts`, `tests/program/generate.test.ts`
+
+**Interfaces:**
+- Produces (`phrases.ts`), the single source of spoken copy, used by both timeline and generator:
+```ts
+export const CHARS_PER_SEC = 12, PHRASE_PAUSE_SEC = 0.4, SPEECH_BUFFER_SEC = 2;
+export function estimateSpeechSec(text: string): number;            // text.length / CHARS_PER_SEC + PHRASE_PAUSE_SEC
+export function transitionPhrases(steps: Step[], i: number): string[]; // prev exitCue (if any) + intro (name/side/entryCue or side switch + entryCue)
+export function holdStartPhrases(step: Step): string[];               // step.pose.cues
+export const CLOSING_PHRASE: string;                                   // 'Практика окончена. Полежи на боку, затем медленно сядь'
+```
+- Generator: `transitionSec = max(base, ceil(Σ estimateSpeechSec(transitionPhrases)) + SPEECH_BUFFER_SEC)` where base is the existing 10/15/8/5. Main fill and all bounds use these real values (600–900 s still holds).
+- Timeline: `exitCue` moves to the start of the next transition (it is already counted there); after the last hold it precedes `CLOSING_PHRASE`. In-hold fillers (`Дыши спокойно`, `Ещё десять секунд`) are dropped if they start before the estimated end of hold-start cues + 1 s, or less than 4 s before hold end. Copy otherwise unchanged.
+
+- [ ] **Step 1: Failing tests:** `estimateSpeechSec('a'.repeat(24))` === 2.4; for 30 generated programs every step satisfies `transitionSec ≥ Σ estimateSpeechSec(transitionPhrases) + SPEECH_BUFFER_SEC` and `≥ base`; no filler starts before the estimated end of the hold-start cues; totals still 600–900; timeline `say` texts ⊆ `allPhrases(POSES)`.
+- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement; timeline and generator import copy only from `phrases.ts`. **Step 4:** Run → PASS.
+- [ ] **Step 5:** Commit `fix: size transitions to spoken cue length`.
