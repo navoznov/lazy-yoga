@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { estimateSpeechSec, holdStartPhrases, transitionPhrases } from '../../src/player/phrases'
 import { allPhrases, buildTimeline, type TimelineEvent } from '../../src/player/timeline'
 import { POSES } from '../../src/poses/data'
 import type { Pose } from '../../src/poses/types'
@@ -100,10 +101,46 @@ describe('buildTimeline', () => {
     expect(saysAt(TL, 68)).toEqual(['Верни колени в центр', SWITCH, 'Ляг на спину, колени в сторону'])
   })
 
-  test('exitCue at hold end is spoken before the next step starts', () => {
+  test('exitCue opens the next transition, before its intro', () => {
     const at68 = TL.filter(e => e.atSec === 68)
-    expect(at68[0]).toEqual({ atSec: 68, kind: 'say', text: 'Верни колени в центр' })
-    expect(at68[1]).toEqual({ atSec: 68, kind: 'step', stepIndex: 2, phase: 'transition' })
+    expect(at68[0]).toEqual({ atSec: 68, kind: 'step', stepIndex: 2, phase: 'transition' })
+    expect(at68[1]).toEqual({ atSec: 68, kind: 'say', text: 'Верни колени в центр' })
+  })
+
+  test('transition start says exactly transitionPhrases of generated programs', () => {
+    for (const p of GENERATED) {
+      const tl = buildTimeline(p)
+      let start = 0
+      p.steps.forEach((s, i) => {
+        expect(saysAt(tl, start)).toEqual(transitionPhrases(p.steps, i))
+        start += s.transitionSec + s.holdSec
+      })
+    }
+  })
+
+  test('drops fillers that would start while hold-start cues are still spoken', () => {
+    const wordy = pose({ id: 'wordy', cues: ['а'.repeat(120)], holdSec: 20 })
+    const tl = buildTimeline(program([{ pose: wordy, holdSec: 20, transitionSec: 10 }]))
+    expect(says(tl)).not.toContain('Дыши спокойно')
+  })
+
+  test('no filler of generated programs starts before hold-start cues end + 1 s or within 4 s of hold end', () => {
+    for (const p of GENERATED) {
+      const tl = buildTimeline(p)
+      let start = 0
+      p.steps.forEach(s => {
+        const holdAt = start + s.transitionSec
+        const endAt = holdAt + s.holdSec
+        const cuesEnd = holdAt + holdStartPhrases(s).reduce((sum, t) => sum + estimateSpeechSec(t), 0)
+        for (const e of tl) {
+          if (e.kind !== 'say' || !['Дыши спокойно', 'Ещё десять секунд'].includes(e.text)) continue
+          if (e.atSec <= holdAt || e.atSec >= endAt) continue
+          expect(e.atSec).toBeGreaterThanOrEqual(cuesEnd + 1)
+          expect(endAt - e.atSec).toBeGreaterThanOrEqual(4)
+        }
+        start = endAt
+      })
+    }
   })
 
   test('closing phrase precedes end, which is at program.totalSec', () => {

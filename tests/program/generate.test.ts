@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { POSES } from '../../src/poses/data'
+import { SPEECH_BUFFER_SEC, estimateSpeechSec, transitionPhrases } from '../../src/player/phrases'
 import type { Pose, Position } from '../../src/poses/types'
 import { generateProgram, type Program, type Step } from '../../src/program/generate'
 import { hashString, mulberry32 } from '../../src/program/rng'
@@ -128,19 +129,39 @@ describe('generateProgram over 60 dates × levels × dayIndex', () => {
         expect(left.pose.id).toBe(s.pose.id)
         expect(left.side).toBe('left')
         expect(left.holdSec).toBe(s.holdSec)
-        expect(left.transitionSec).toBe(5)
+        expect(left.transitionSec).toBeGreaterThanOrEqual(5)
         i++
       }
     }
   })
 
-  test('first transition is 10 s; floor → standing is 15 s', () => {
+  test('first transition is ≥ 10 s; floor → standing is ≥ 15 s', () => {
     for (const { program } of PROGRAMS) {
-      expect(program.steps[0].transitionSec).toBe(10)
+      expect(program.steps[0].transitionSec).toBeGreaterThanOrEqual(10)
       program.steps.forEach((s, i) => {
         const prev = program.steps[i - 1]
         if (prev && prev.pose.id !== s.pose.id && s.pose.position === 'standing' && FLOOR.includes(prev.pose.position))
-          expect(s.transitionSec).toBe(15)
+          expect(s.transitionSec).toBeGreaterThanOrEqual(15)
+      })
+    }
+  })
+
+  test('every transition fits its spoken copy plus buffer and is at least the base', () => {
+    for (const { opts, program } of PROGRAMS) {
+      program.steps.forEach((s, i) => {
+        const prev = program.steps[i - 1]
+        const base = !prev
+          ? 10
+          : s.side === 'left'
+            ? 5
+            : s.pose.position === 'standing' && FLOOR.includes(prev.pose.position)
+              ? 15
+              : 8
+        const speech = transitionPhrases(program.steps, i).reduce((sum, t) => sum + estimateSpeechSec(t), 0)
+        const label = JSON.stringify({ ...opts, i })
+        expect(Number.isInteger(s.transitionSec), label).toBe(true)
+        expect(s.transitionSec, label).toBeGreaterThanOrEqual(base)
+        expect(s.transitionSec, label).toBeGreaterThanOrEqual(speech + SPEECH_BUFFER_SEC)
       })
     }
   })

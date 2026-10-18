@@ -1,3 +1,4 @@
+import { SPEECH_BUFFER_SEC, estimateSpeechSec, transitionPhrases } from '../player/phrases'
 import { POSES } from '../poses/data'
 import { capHold, isAllowed } from '../poses/safety'
 import type { Pose, Position } from '../poses/types'
@@ -71,7 +72,11 @@ function toSteps(poses: Pose[], level: number): Step[] {
       steps.push({ pose, holdSec, transitionSec })
     }
   })
-  return steps
+  // stretch each transition to fit what is spoken during it
+  return steps.map((step, i) => {
+    const speechSec = transitionPhrases(steps, i).reduce((sum, text) => sum + estimateSpeechSec(text), 0)
+    return { ...step, transitionSec: Math.max(step.transitionSec, Math.ceil(speechSec) + SPEECH_BUFFER_SEC) }
+  })
 }
 
 function build(date: string, poses: Pose[], level: number): Program {
