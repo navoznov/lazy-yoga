@@ -50,9 +50,11 @@ export function App() {
       return (
         <Rating
           onRate={(rating: RatingValue) => {
-            // a repeat session on the same day replaces that day's entry
+            // a repeat session on the same day replaces that day's entry; only the first rating moves the level
+            const ratedToday = state.history.some(h => h.date === today)
             const history = [...state.history.filter(h => h.date !== today), { date: today, rating }]
-            update({ ...state, startDate, level: nextLevel(state.level, rating, dayIndex), history })
+            const level = ratedToday ? state.level : nextLevel(state.level, rating, dayIndex)
+            update({ ...state, startDate, level, history })
             setScreen('home')
           }}
         />

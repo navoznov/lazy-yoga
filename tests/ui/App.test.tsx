@@ -80,6 +80,22 @@ test('a second session on the same day replaces the day’s history entry', asyn
   expect(loadState().history).toEqual([{ date: todayLocal(), rating: 'ok' }])
 })
 
+test('rating twice on the same day changes the level only once', async () => {
+  acceptDisclaimer()
+  for (let n = 0; n < 2; n++) {
+    fireEvent.click(screen.getByRole('button', { name: 'Начать' }))
+    const session = screen.getByTestId('session')
+    for (let i = 0; i < 100 && !screen.queryByRole('button', { name: 'Тяжело' }); i++) {
+      swipeLeft(session)
+      await Promise.resolve()
+    }
+    fireEvent.click(await screen.findByRole('button', { name: 'Тяжело' }))
+  }
+  const state = loadState()
+  expect(state.level).toBeCloseTo(0.9)
+  expect(state.history).toEqual([{ date: todayLocal(), rating: 'hard' }])
+})
+
 test('Credits page lists ICON_CREDITS authors', () => {
   acceptDisclaimer()
   fireEvent.click(screen.getByRole('button', { name: 'Авторы иконок' }))
