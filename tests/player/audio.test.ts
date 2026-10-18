@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { browserSpeak, createVoice } from '../../src/player/audio'
 
 function deferred() {
@@ -96,4 +96,27 @@ test('idle voice reaches play/speak synchronously (iOS unlocks audio only inside
   const third = voice.say('Ещё')
   expect(log).toEqual(['speak Дыши спокойно', 'play /audio/abc.mp3', 'speak Ещё'])
   await third
+})
+
+test('stop unblocks the queue when the current phrase never finishes (iOS onend bug)', () => {
+  const spoken: string[] = []
+  const voice = createVoice({ manifest: {}, baseUrl: '/', play: async () => {}, speak: text => { spoken.push(text); return new Promise(() => {}) } })
+  voice.say('зависшая')
+  voice.stop()
+  voice.say('следующая')
+  expect(spoken).toEqual(['зависшая', 'следующая'])
+})
+
+test('browserSpeak resolves by timeout when onend never fires', async () => {
+  vi.useFakeTimers()
+  const g = globalThis as Record<string, unknown>
+  g.SpeechSynthesisUtterance = class { lang = ''; voice = null; onend = null; onerror = null; text: string; constructor(text: string) { this.text = text } }
+  g.speechSynthesis = { getVoices: () => [], speak: () => {} }
+  let done = false
+  browserSpeak('фраза без события завершения').then(() => { done = true })
+  await vi.advanceTimersByTimeAsync(60_000)
+  expect(done).toBe(true)
+  delete g.SpeechSynthesisUtterance
+  delete g.speechSynthesis
+  vi.useRealTimers()
 })
