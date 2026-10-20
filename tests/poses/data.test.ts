@@ -42,18 +42,17 @@ test('exact id set and bilateral set from the table', () => {
   const ids = [
     'neck-side-stretch', 'chin-tuck', 'shoulder-rolls', 'chair-cat-cow', 'chair-twist', 'seated-side-bend', 'wrist-stretch',
     'mountain', 'standing-side-bend', 'chair-supported-half-fold', 'warrior-two', 'wall-tree',
-    'cat-cow', 'childs-pose', 'thread-the-needle', 'low-lunge', 'sphinx', 'butterfly', 'bent-knee-seated-fold', 'seated-twist',
+    'cat-cow', 'childs-pose', 'low-lunge', 'sphinx', 'butterfly', 'bent-knee-seated-fold', 'seated-twist',
     'knees-to-chest', 'supine-twist', 'supine-figure-four', 'strap-hamstring-stretch', 'reclined-bound-angle',
     'legs-up-the-wall', 'corpse',
   ]
   const bilateral = [
     'neck-side-stretch', 'chair-twist', 'seated-side-bend', 'wrist-stretch', 'standing-side-bend', 'warrior-two',
-    'wall-tree', 'thread-the-needle', 'low-lunge', 'seated-twist', 'supine-twist', 'supine-figure-four',
+    'wall-tree', 'low-lunge', 'seated-twist', 'supine-twist', 'supine-figure-four',
     'strap-hamstring-stretch',
   ]
   expect(POSES.map(p => p.id).sort()).toEqual([...ids].sort())
   expect(POSES.filter(p => p.bilateral).map(p => p.id).sort()).toEqual([...bilateral].sort())
-  expect(POSES.find(p => p.id === 'thread-the-needle')!.contraindications).toContain('head-below-heart')
 })
 
 test('corpse hold 90–120', () => {

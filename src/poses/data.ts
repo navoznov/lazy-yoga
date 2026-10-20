@@ -263,25 +263,6 @@ export const POSES: Pose[] = [
       'Minimalist silhouette of a clothed person kneeling with knees apart, hips toward heels, forehead resting on a pillow, arms forward, plain light background.',
   },
   {
-    id: 'thread-the-needle',
-    nameRu: 'Нить в иголку',
-    description:
-      'Стоя на четвереньках, протяни одну руку под другой и опусти плечо и висок на подушку; под колени — сложенный коврик или полотенце. Почувствуй растяжение между лопатками. Вернись, опираясь на свободную руку.',
-    entryCue: 'С четверенек протяни руку под другой',
-    cues: ['Рука скользит под грудью, висок на подушку', 'Плечи расслабь'],
-    exitCue: 'Упрись свободной рукой и медленно вернись на четвереньки',
-    holdSec: 20,
-    bilateral: true,
-    position: 'kneeling',
-    phases: ['main'],
-    areas: ['upper-back', 'shoulders'],
-    difficulty: 2,
-    contraindications: ['head-below-heart'],
-    icon: true,
-    imagePrompt:
-      'Minimalist silhouette of a clothed person on hands and knees, one arm threaded under the body with shoulder and temple resting on a pillow, plain light background.',
-  },
-  {
     id: 'low-lunge',
     nameRu: 'Низкий выпад',
     sanskrit: 'Anjaneyasana',
